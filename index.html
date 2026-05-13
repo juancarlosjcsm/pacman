@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Comecocos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="bg-decor" aria-hidden="true"></div>
+
+    <main class="app" id="app">
+      <section class="screen menu-screen" id="menuScreen">
+        <h1 class="arcade-title">NEON COMECOCOS</h1>
+        <p class="subtitle">Arcade retro moderno</p>
+        <div class="menu-actions">
+          <button class="btn neon" id="playBtn">Play</button>
+          <button class="btn" id="instructionsBtn">Instructions</button>
+          <button class="btn" id="highScoresBtn">High Scores</button>
+        </div>
+      </section>
+
+      <section class="screen panel-screen hidden" id="instructionsScreen">
+        <h2>Instructions</h2>
+        <ul>
+          <li>Usa flechas o WASD para moverte.</li>
+          <li>Come todos los puntos para pasar de nivel.</li>
+          <li>Power pellets: vuelven vulnerables a los fantasmas.</li>
+          <li>P pausa/reanuda y Enter reinicia tras Game Over.</li>
+        </ul>
+        <button class="btn" id="backFromInstructions">Back</button>
+      </section>
+
+      <section class="screen panel-screen hidden" id="highScoresScreen">
+        <h2>High Scores</h2>
+        <ol id="highScoresList"></ol>
+        <button class="btn" id="backFromScores">Back</button>
+      </section>
+
+      <section class="screen game-screen hidden" id="gameScreen">
+        <header class="hud">
+          <div><span class="label">Score</span><span id="scoreValue">0</span></div>
+          <div><span class="label">Lives</span><span id="livesValue">3</span></div>
+          <div><span class="label">Level</span><span id="levelValue">1</span></div>
+        </header>
+
+        <div class="canvas-wrap">
+          <canvas id="gameCanvas" width="456" height="552"></canvas>
+          <div class="overlay-message hidden" id="pauseMessage">PAUSE</div>
+          <div class="overlay-message hidden" id="transitionMessage">LEVEL UP</div>
+        </div>
+
+        <footer class="mobile-controls-hint">
+          <p>Flechas/WASD · P pausa · Enter reinicia</p>
+        </footer>
+      </section>
+
+      <section class="screen panel-screen hidden" id="gameOverScreen">
+        <h2>Game Over</h2>
+        <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+        <div class="menu-actions">
+          <button class="btn neon" id="restartBtn">Restart</button>
+          <button class="btn" id="backToMenuBtn">Back to Menu</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
