@@ -40,9 +40,21 @@ export class Player {
   }
 
   isAlignedToGrid(maze, threshold = 2.2) {
-    const centerX = ((Math.floor(this.x / maze.tileSize) + 0.5) * maze.tileSize);
-    const centerY = ((Math.floor(this.y / maze.tileSize) + 0.5) * maze.tileSize);
+    const { centerX, centerY } = this.getTileCenter(maze);
     return Math.abs(this.x - centerX) < threshold && Math.abs(this.y - centerY) < threshold;
+  }
+
+  getTileCenter(maze) {
+    const centerX = (Math.floor(this.x / maze.tileSize) + 0.5) * maze.tileSize;
+    const centerY = (Math.floor(this.y / maze.tileSize) + 0.5) * maze.tileSize;
+    return { centerX, centerY };
+  }
+
+  approach(current, target, maxDelta) {
+    if (Math.abs(target - current) <= maxDelta) {
+      return target;
+    }
+    return current + Math.sign(target - current) * maxDelta;
   }
 
   canMove(directionName, maze) {
@@ -52,22 +64,76 @@ export class Player {
     }
 
     const probe = this.radius + 2;
-    const targetX = this.x + dir.x * probe;
-    const targetY = this.y + dir.y * probe;
-    return !maze.isWallAtPixel(targetX, targetY);
+    const side = this.radius - 2;
+
+    if (dir.x !== 0) {
+      const edgeX = this.x + dir.x * probe;
+      return !maze.isWallAtPixel(edgeX, this.y) && !maze.isWallAtPixel(edgeX, this.y - side) && !maze.isWallAtPixel(edgeX, this.y + side);
+    }
+
+    const edgeY = this.y + dir.y * probe;
+    return !maze.isWallAtPixel(this.x, edgeY) && !maze.isWallAtPixel(this.x - side, edgeY) && !maze.isWallAtPixel(this.x + side, edgeY);
+  }
+
+  canTurnNow(directionName, maze) {
+    const dir = DIRECTIONS[directionName];
+    if (!dir) {
+      return false;
+    }
+
+    const { centerX, centerY } = this.getTileCenter(maze);
+    const tolerance = 4.5;
+
+    if (dir.x !== 0 && Math.abs(this.y - centerY) > tolerance) {
+      return false;
+    }
+
+    if (dir.y !== 0 && Math.abs(this.x - centerX) > tolerance) {
+      return false;
+    }
+
+    return this.canMove(directionName, maze);
+  }
+
+  snapToAxis(maze, dt) {
+    const { centerX, centerY } = this.getTileCenter(maze);
+    const snapSpeed = this.speed * dt * 1.5;
+
+    if (this.directionName === "left" || this.directionName === "right") {
+      this.y = this.approach(this.y, centerY, snapSpeed);
+    } else {
+      this.x = this.approach(this.x, centerX, snapSpeed);
+    }
   }
 
   update(dt, maze) {
     this.mouthAnim += dt * 8;
+    this.snapToAxis(maze, dt);
 
-    if (this.isAlignedToGrid(maze) && this.canMove(this.nextDirectionName, maze)) {
+    if (this.canTurnNow(this.nextDirectionName, maze)) {
       this.directionName = this.nextDirectionName;
+
+      // Snap to the corridor axis at turn time to avoid edge clipping.
+      const { centerX, centerY } = this.getTileCenter(maze);
+      if (this.directionName === "left" || this.directionName === "right") {
+        this.y = centerY;
+      } else {
+        this.x = centerX;
+      }
     }
 
     if (this.canMove(this.directionName, maze)) {
       const dir = DIRECTIONS[this.directionName];
       this.x += dir.x * this.speed * dt;
       this.y += dir.y * this.speed * dt;
+    } else {
+      const { centerX, centerY } = this.getTileCenter(maze);
+      this.x = this.approach(this.x, centerX, this.speed * dt);
+      this.y = this.approach(this.y, centerY, this.speed * dt);
+
+      if (this.canTurnNow(this.nextDirectionName, maze)) {
+        this.directionName = this.nextDirectionName;
+      }
     }
 
     // Tunnel wrap around.
